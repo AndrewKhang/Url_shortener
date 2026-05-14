@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f5f4ef;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      width: 100%;
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 999px;
+      color: #888780;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #2c2c2a;
+      margin-bottom: 0.4rem;
+    }
+
+    .sub {
+      font-size: 14px;
+      color: #888780;
+      margin-bottom: 2rem;
+      font-weight: 300;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 0.5px solid rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .field { margin-bottom: 1rem; }
+    .field:last-of-type { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #888780;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    input[type=text], input[type=url], input[type=datetime-local] {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      border: 0.5px solid rgba(0,0,0,0.15);
+      border-radius: 8px;
+      background: #fafafa;
+      color: #2c2c2a;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: rgba(0,0,0,0.4); }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn {
+      width: 100%;
+      height: 44px;
+      background: #2c2c2a;
+      color: #f5f4ef;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      transition: opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:active { transform: scale(0.99); }
+
+    .result {
+      display: none;
+      background: #ffffff;
+      border: 0.5px solid rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .result.show { display: block; }
+
+    .result-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #b4b2a9;
+      margin-bottom: 8px;
+    }
+
+    .result-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .short-url {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: #2c2c2a;
+      flex: 1;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      height: 32px;
+      padding: 0 14px;
+      background: transparent;
+      border: 0.5px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #5f5e5a;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.1s;
+    }
+    .copy-btn:hover { background: #f5f4ef; }
+    .copy-btn.copied { color: #3b6d11; }
+
+    .err {
+      display: none;
+      font-size: 13px;
+      color: #a32d2d;
+      margin-top: 10px;
+    }
+    .err.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="content">
+    <span class="badge">URL Shortener</span>
+    <h1>Make it short.<br>Keep it sharp.</h1>
+    <p class="sub">Paste your long URL and get a clean, shareable link.</p>
+
+    <div class="card">
+      <div class="field">
+        <label>Original URL</label>
+        <input type="url" id="urlInput" placeholder="https://your-very-long-url.com/...">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Custom alias</label>
+          <input type="text" id="aliasInput" placeholder="my-link">
+        </div>
+        <div class="field">
+          <label>Expire date</label>
+          <input type="datetime-local" id="expireInput">
+        </div>
+      </div>
+      <button class="btn" id="myBtn">
+        <i class="ti ti-link" aria-hidden="true"></i>
+        Shorten URL
+      </button>
+      <p class="err" id="errMsg"></p>
+    </div>
+
+    <div class="result" id="result">
+      <p class="result-label">Your short link</p>
+      <div class="result-row">
+        <span class="short-url" id="shortUrl"></span>
+        <button class="copy-btn" id="copyBtn">
+          <i class="ti ti-copy" aria-hidden="true"></i>
+          Copy
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('myBtn').addEventListener('click', async () => {
+      const url = document.getElementById('urlInput').value.trim();
+      const alias = document.getElementById('aliasInput').value.trim();
+      const expire = document.getElementById('expireInput').value;
+      const errEl = document.getElementById('errMsg');
+      const resultEl = document.getElementById('result');
+
+      errEl.className = 'err';
+      resultEl.className = 'result';
+
+      if (!url) {
+        errEl.textContent = 'Please enter a URL.';
+        errEl.className = 'err show';
+        return;
+      }
+
+      try {
+        const body = {
+          original_url: url,
+          custom_alias: alias || null,
+          expire_date: expire ? new Date(expire).toISOString() : null
+        };
+
+        const res = await fetch('http://localhost:8000/links', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errEl.textContent = data.detail || 'Something went wrong.';
+          errEl.className = 'err show';
+          return;
+        }
+
+        const shortLink = `http://localhost:8000/${data.short_key}`;
+        document.getElementById('shortUrl').textContent = shortLink;
+        resultEl.className = 'result show';
+
+      } catch (e) {
+        errEl.textContent = 'Could not connect to server.';
+        errEl.className = 'err show';
+      }
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const text = document.getElementById('shortUrl').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Copied';
+        btn.className = 'copy-btn copied';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="ti ti-copy" aria-hidden="true"></i> Copy';
+          btn.className = 'copy-btn';
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
