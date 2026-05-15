@@ -253,7 +253,7 @@
           expire_date: expire ? new Date(expire).toISOString() : null
         };
 
-        const res = await fetch('http://localhost:8000/links', {
+        const res = await fetch('https://url-shortener-sg93.onrender.com/links', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
@@ -267,7 +267,7 @@
           return;
         }
 
-        const shortLink = `http://localhost:8000/${data.short_key}`;
+        const shortLink = `https://url-shortener-sg93.onrender.com/${data.short_key}`;
         document.getElementById('shortUrl').textContent = shortLink;
         resultEl.className = 'result show';
 
